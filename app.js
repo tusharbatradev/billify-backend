@@ -6,6 +6,7 @@ const dotenv = require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const auth = require("./Middlewares/auth");
 const productRouter = require("./Routes/products");
+const customerRouter = require("./Routes/customers");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(cors(corsOption));
 // Routes
 app.use("/user", businessRouter);
 app.use("/product", auth, productRouter);
+app.use("/customer", auth, customerRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
