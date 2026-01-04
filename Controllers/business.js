@@ -14,14 +14,21 @@ async function createBusiness(req, res) {
       gstNumber,
     } = req.body;
 
-    // validation
-    if (!password) {
-      return res.status(400).json({ message: "Password is required" });
+    // Check if business already exists
+    const existingBusiness = await Business.findOne({
+      $or: [{ businessName }, { email }, { phoneNumber }],
+    });
+
+    if (existingBusiness) {
+      return res.status(409).json({
+        message: "Business already exists with given details",
+      });
     }
 
-    // hash password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create business
     const business = await Business.create({
       businessName,
       email,
@@ -43,22 +50,28 @@ async function createBusiness(req, res) {
 
 async function loginBusiness(req, res) {
   try {
-    const { businessName, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!businessName || !password) {
-      return res.status(400).json({ msg: "All fields are required" });
+    if (!email || !password) {
+      return res.status(400).json({
+        msg: "Email and password are required",
+      });
     }
 
-    const business = await Business.findOne({ businessName });
+    // Check if email exists in DB
+    const business = await Business.findOne({email});
 
     if (!business) {
-      return res.status(400).json({ msg: "Business not found" });
+      return res.status(404).json({
+        msg: "Email is not registered",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, business.password);
-
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid password" });
+      return res.status(401).json({
+        msg: "Invalid password",
+      });
     }
 
     const token = jwt.sign({ id: business._id }, process.env.secretKey, {
@@ -72,8 +85,8 @@ async function loginBusiness(req, res) {
 
     res.status(200).json({
       msg: "Business logged in successfully",
-      business,
       token,
+      business
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -24,7 +24,7 @@ app.use(cors(corsOption));
 
 // Routes
 app.use("/user", businessRouter);
-app.use("/product", productRouter);
+app.use("/product", auth, productRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
